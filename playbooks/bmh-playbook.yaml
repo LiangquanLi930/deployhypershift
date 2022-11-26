@@ -1,0 +1,21 @@
+- name: Create BareMetalHost CR
+  hosts: localhost
+  collections:
+   - community.general
+  gather_facts: no
+  vars:
+    - hosted_control_plane_namespace: "{{ lookup('env', 'HOSTED_CONTROL_PLANE_NAMESPACE') }}"
+    - baremetalhosts: "{{ lookup('file', lookup('env', 'EXTRA_BAREMETALHOSTS_FILE')) | from_json }}"
+    - iso_download_url: "{{ lookup('env', 'ISO_DOWNLOAD_URL') }}"
+
+  tasks:
+  - name: create directory for generated resources
+    file:
+      name: generated
+      state: directory
+
+  - name: write the baremetalHost CR
+    template:
+      src: "templates/baremetalHost.j2"
+      dest: "generated/baremetalHost.yaml"
+
