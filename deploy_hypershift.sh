@@ -22,9 +22,9 @@ spec:
   sshAuthorizedKey: ${SSH_PUB_KEY}
 EOF
 
-wait_for_condition "infraenv/${HOSTED_CLUSTER_NAME}" "ImageCreated" "5m" "${HOSTED_CONTROL_PLANE_NAMESPACE}"
-export ISO_DOWNLOAD_URL=$(oc get -n $HOSTED_CONTROL_PLANE_NAMESPACE infraenv $HOSTED_CLUSTER_NAME -o jsonpath='{.status.isoDownloadURL}')
+#wait_for_condition "infraenv/${HOSTED_CLUSTER_NAME}" "ImageCreated" "5m" "${HOSTED_CONTROL_PLANE_NAMESPACE}"
+#export ISO_DOWNLOAD_URL=$(oc get -n $HOSTED_CONTROL_PLANE_NAMESPACE infraenv $HOSTED_CLUSTER_NAME -o jsonpath='{.status.isoDownloadURL}')
 
-echo "Apply BareMetalHost on hub"
-ansible-playbook "${playbooks_dir}/bmh-playbook.yaml"
-oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml -n $HOSTED_CONTROL_PLANE_NAMESPACE
+#echo "Apply BareMetalHost on hub"
+#ansible-playbook "${playbooks_dir}/bmh-playbook.yaml"
+#oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml -n $HOSTED_CONTROL_PLANE_NAMESPACE
