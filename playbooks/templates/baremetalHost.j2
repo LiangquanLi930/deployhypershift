@@ -28,7 +28,4 @@ spec:
   bmc:
     address: '{{ host["driver_info"]["address"] }}'
     credentialsName: '{{ host["name"] }}-bmc-secret'
-  image:
-    format: live-iso
-    url: '{{ iso_download_url }}'
 {% endfor %}
