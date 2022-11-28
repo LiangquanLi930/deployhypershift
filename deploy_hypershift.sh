@@ -13,7 +13,7 @@ export ASSISTED_PULLSECRET_JSON="${ASSISTED_PULLSECRET_JSON:-${PULL_SECRET_FILE}
 export INFRAENV_NAME=${HOSTED_CLUSTER_NAME}
 
 echo "Running Ansible playbook to create kubernetes objects"
-ansible-playbook "${__dir}/assisted-installer-crds-playbook.yaml"
+ansible-playbook "${__dir}/bmh-playbook.yaml"
 
 oc get secret pull-secret -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
     oc create secret generic pull-secret --from-file=.dockerconfigjson="${ASSISTED_PULLSECRET_JSON}" --type=kubernetes.io/dockerconfigjson -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
