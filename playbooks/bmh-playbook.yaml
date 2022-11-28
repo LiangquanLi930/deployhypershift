@@ -6,6 +6,7 @@
   vars:
     - hosted_control_plane_namespace: "{{ lookup('env', 'HOSTED_CONTROL_PLANE_NAMESPACE') }}"
     - baremetalhosts: "{{ lookup('file', lookup('env', 'EXTRA_BAREMETALHOSTS_FILE')) | from_json }}"
+    - infraenv_name: "{{ lookup('env', 'INFRAENV_NAME') }}"
     - iso_download_url: "{{ lookup('env', 'ISO_DOWNLOAD_URL') }}"
 
   tasks:
@@ -13,6 +14,11 @@
     file:
       name: generated
       state: directory
+
+  - name: write the infraEnv crd
+    template:
+      src: "templates/infraEnv.j2"
+      dest: "generated/infraEnv.yaml"
 
   - name: write the baremetalHost CR
     template:
