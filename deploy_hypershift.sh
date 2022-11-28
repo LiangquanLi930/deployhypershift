@@ -10,6 +10,7 @@ export SSH_PUB_KEY=$(cat /root/.ssh/id_rsa.pub)
 export HOSTED_CLUSTER_NAME=$(oc get hostedclusters -n clusters -ojsonpath="{.items[0].metadata.name}")
 export HOSTED_CONTROL_PLANE_NAMESPACE="clusters-"${HOSTED_CLUSTER_NAME}
 export ASSISTED_PULLSECRET_JSON="${ASSISTED_PULLSECRET_JSON:-${PULL_SECRET_FILE}}"
+export ASSISTED_PRIVATEKEY_NAME="${ASSISTED_PRIVATEKEY_NAME:-assisted-ssh-private-key}"
 export INFRAENV_NAME=${HOSTED_CLUSTER_NAME}
 
 echo "Running Ansible playbook to create kubernetes objects"
