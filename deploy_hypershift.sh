@@ -21,9 +21,8 @@ oc get secret pull-secret -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
 oc get secret "${ASSISTED_PRIVATEKEY_NAME}" -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
     oc create secret generic "${ASSISTED_PRIVATEKEY_NAME}" --from-file=ssh-privatekey=/root/.ssh/id_rsa --type=kubernetes.io/ssh-auth -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
 
-for manifest in $(find ${playbooks_dir}/generated -type f); do
-    tee < "${manifest}" >(oc apply -f -)
-done
+oc apply -f ${playbooks_dir}/infraEnv.yaml
+oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
 
 echo "wait BareMetalHost ready"
 oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=10m
