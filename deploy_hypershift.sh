@@ -25,7 +25,12 @@ for manifest in $(find ${playbooks_dir}/generated -type f); do
     tee < "${manifest}" >(oc apply -f -)
 done
 
-#oc wait --timeout=5m --for=condition=ImageCreated --namespace=${HOSTED_CONTROL_PLANE_NAMESPACE} InfraEnv/${INFRAENV_NAME}
+echo "wait BareMetalHost ready"
+oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=5m
+REPLICAS_COUNT=$(oc get bmh -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers | wc -l)
 
-#wait_for_condition "infraenv/${HOSTED_CLUSTER_NAME}" "ImageCreated" "5m" "${HOSTED_CONTROL_PLANE_NAMESPACE}"
-#export ISO_DOWNLOAD_URL=$(oc get -n $HOSTED_CONTROL_PLANE_NAMESPACE infraenv $HOSTED_CLUSTER_NAME -o jsonpath='{.status.isoDownloadURL}')
+echo "scale nodepool replicas => $REPLICAS_COUNT"
+oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${REPLICAS_COUNT}
+
+echo "wait agent ready"
+oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=15m
