@@ -21,7 +21,7 @@ oc get secret pull-secret -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
 oc get secret "${ASSISTED_PRIVATEKEY_NAME}" -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
     oc create secret generic "${ASSISTED_PRIVATEKEY_NAME}" --from-file=ssh-privatekey=/root/.ssh/id_rsa --type=kubernetes.io/ssh-auth -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
 
-oc apply -f ${playbooks_dir}/infraEnv.yaml
+oc apply -f ${playbooks_dir}/generated/infraEnv.yaml
 oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
 
 echo "wait BareMetalHost ready"
