@@ -26,11 +26,11 @@ for manifest in $(find ${playbooks_dir}/generated -type f); do
 done
 
 echo "wait BareMetalHost ready"
-oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=5m
+oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=10m
 REPLICAS_COUNT=$(oc get bmh -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers | wc -l)
 
 echo "scale nodepool replicas => $REPLICAS_COUNT"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${REPLICAS_COUNT}
 
 echo "wait agent ready"
-oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=15m
+oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=20m
