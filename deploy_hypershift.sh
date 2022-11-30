@@ -31,5 +31,17 @@ REPLICAS_COUNT=$(oc get bmh -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers | 
 echo "scale nodepool replicas => $REPLICAS_COUNT"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${REPLICAS_COUNT}
 
+set +e
+for ((i=1; i<=10; i++)); do
+    count=$(oc get agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers --ignore-not-found | wc -l)
+    if [ "$count" -gt 0 ]  ; then
+        echo "agent resources already exist"
+        break
+    fi
+    echo "Waiting on agent resources create"
+    sleep 30
+done
+set -e
+
 echo "wait agent ready"
 oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=20m
