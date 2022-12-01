@@ -3,6 +3,7 @@
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 __root="$(realpath ${__dir}/../../..)"
 source ${__dir}/../common.sh
+source /root/dev-scripts-additional-config
 playbooks_dir=${__dir}/playbooks
 
 export SSH_PUB_KEY=$(cat /root/.ssh/id_rsa.pub)
@@ -25,12 +26,11 @@ oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
 
 echo "wait BareMetalHost ready"
 oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=10m
-REPLICAS_COUNT=$(oc get bmh -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers | wc -l)
 
 set +e
 for ((i=1; i<=10; i++)); do
     count=$(oc get agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers --ignore-not-found | wc -l)
-    if [ ${count} == ${REPLICAS_COUNT} ]  ; then
+    if [ ${count} == ${NUM_EXTRA_WORKERS} ]  ; then
         echo "agent resources already exist"
         break
     fi
@@ -40,6 +40,6 @@ done
 set -e
 
 echo "scale nodepool replicas => $REPLICAS_COUNT"
-oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${REPLICAS_COUNT}
+oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${NUM_EXTRA_WORKERS}
 echo "wait agent ready"
-oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=20m
+oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=30m
