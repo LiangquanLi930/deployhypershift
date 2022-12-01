@@ -35,11 +35,11 @@ for ((i=1; i<=10; i++)); do
         break
     fi
     echo "Waiting on agent resources create"
-    sleep 30
+    sleep 90
 done
 set -e
 
-echo "scale nodepool replicas => $REPLICAS_COUNT"
+echo "scale nodepool replicas => $NUM_EXTRA_WORKERS"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${NUM_EXTRA_WORKERS}
 echo "wait agent ready"
 oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=30m
