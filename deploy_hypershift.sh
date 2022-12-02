@@ -27,17 +27,23 @@ oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
 echo "wait BareMetalHost ready"
 oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=10m
 
+_agentExist=0
 set +e
 for ((i=1; i<=10; i++)); do
     count=$(oc get agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers --ignore-not-found | wc -l)
     if [ ${count} == ${NUM_EXTRA_WORKERS} ]  ; then
         echo "agent resources already exist"
+        _agentExist=1
         break
     fi
     echo "Waiting on agent resources create"
     sleep 90
 done
 set -e
+if [ $_agentExist -eq 0 ]; then
+  echo "FATAL: agent cr not Exist"
+  exit 1
+fi
 
 echo "scale nodepool replicas => $NUM_EXTRA_WORKERS"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${NUM_EXTRA_WORKERS}
