@@ -29,7 +29,7 @@ oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=json
 
 _agentExist=0
 set +e
-for ((i=1; i<=10; i++)); do
+for ((i=1; i<=20; i++)); do
     count=$(oc get agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --no-headers --ignore-not-found | wc -l)
     if [ ${count} == ${NUM_EXTRA_WORKERS} ]  ; then
         echo "agent resources already exist"
@@ -37,7 +37,7 @@ for ((i=1; i<=10; i++)); do
         break
     fi
     echo "Waiting on agent resources create"
-    sleep 90
+    sleep 60
 done
 set -e
 if [ $_agentExist -eq 0 ]; then
