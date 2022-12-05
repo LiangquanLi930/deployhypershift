@@ -48,4 +48,4 @@ fi
 echo "scale nodepool replicas => $NUM_EXTRA_WORKERS"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n clusters --replicas ${NUM_EXTRA_WORKERS}
 echo "wait agent ready"
-oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=30m
+oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.debugInfo.state}'=added-to-existing-cluster --timeout=45m
