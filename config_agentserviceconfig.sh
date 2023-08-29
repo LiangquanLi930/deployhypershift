@@ -1,4 +1,5 @@
 __dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+__root="$(realpath ${__dir}/../..)"
 source ${__dir}/common.sh
 source ${__dir}/utils.sh
 source ${__dir}/mirror_utils.sh
@@ -78,7 +79,7 @@ spec:
     storage: 200Gi
 EOCR
 }
-
+${__dir}/libvirt_disks.sh create
 config_agentserviceconfig
 
 wait_for_condition "agentserviceconfigs/agent" "ReconcileCompleted" "5m"
