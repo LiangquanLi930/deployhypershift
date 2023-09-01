@@ -77,9 +77,40 @@ spec:
   resources:
    requests:
     storage: 200Gi
+ mirrorRegistryRef:
+  name: 'assisted-mirror-config'
 EOCR
 }
+
+function deploy_mirror_config_map() {
+  cat << EOCR > ./assisted-mirror-config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assisted-mirror-config
+  namespace: ${ASSISTED_NAMESPACE}
+  labels:
+    app: assisted-service
+data:
+  registries.conf: |
+    unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
+
+    $(for row in $(kubectl get imagecontentsourcepolicy -o json |
+        jq -rc ".items[]).spec.repositoryDigestMirrors[] | [.mirrors[0], .source]"); do
+      row=$(echo ${row} | tr -d '[]"');
+      source=$(echo ${row} | cut -d',' -f2);
+      mirror=$(echo ${row} | cut -d',' -f1);
+      registry_config ${source} ${mirror};
+    done)
+EOCR
+
+  python ${__dir}/set_ca_bundle.py "${WORKING_DIR}/registry/certs/registry.2.crt" "./assisted-mirror-config"
+  tee < ./assisted-mirror-config >(oc apply -f -)
+}
+
 ${__dir}/libvirt_disks.sh create
+
+deploy_mirror_config_map
 config_agentserviceconfig
 
 wait_for_condition "agentserviceconfigs/agent" "ReconcileCompleted" "5m"
