@@ -96,7 +96,7 @@ data:
     unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
 
     $(for row in $(kubectl get imagecontentsourcepolicy -o json |
-        jq -rc ".items[]).spec.repositoryDigestMirrors[] | [.mirrors[0], .source]"); do
+        jq -rc ".items[].spec.repositoryDigestMirrors[] | [.mirrors[0], .source]"); do
       row=$(echo ${row} | tr -d '[]"');
       source=$(echo ${row} | cut -d',' -f2);
       mirror=$(echo ${row} | cut -d',' -f1);
