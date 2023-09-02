@@ -10,6 +10,20 @@ ASSISTED_NAMESPACE="multicluster-engine"
 
 STORAGE_CLASS_NAME=$(oc get storageclass -o=jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
 
+function registry_config() {
+  src_image=${1}
+  mirrored_image=${2}
+  printf '
+    [[registry]]
+      location = "%s"
+      insecure = false
+      mirror-by-digest-only = true
+
+      [[registry.mirror]]
+        location = "%s"
+  ' ${src_image} ${mirrored_image}
+}
+
 function configmap_config() {
     if [ -n "${OS_IMAGES:-}" ]; then
 cat <<EOF
