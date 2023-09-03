@@ -61,6 +61,7 @@ data:
   LOG_LEVEL: "debug"
 $(configmap_config)
 EOCR
+  CLUSTER_VERSION=$(oc get clusterversion -o jsonpath={..desired.version} | cut -d '.' -f 1,2)
 
   tee << EOCR >(oc apply -f -)
 apiVersion: agent-install.openshift.io/v1beta1
@@ -93,11 +94,16 @@ spec:
     storage: 200Gi
  mirrorRegistryRef:
   name: 'assisted-mirror-config'
+ osImages:
+ - openshiftVersion: "${CLUSTER_VERSION}"
+   version: 413.92.202307260246-0
+   url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.13/4.13.10/rhcos-4.13.10-x86_64-live.x86_64.iso
+   cpuArchitecture: x86_64
 EOCR
 }
 
 function deploy_mirror_config_map() {
-  CA_BUNDLE=$(oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"')
+  oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"' > ca-bundle-crt
   cat << EOCR > ./assisted-mirror-config
 apiVersion: v1
 kind: ConfigMap
@@ -117,9 +123,8 @@ data:
       mirror=$(echo ${row} | cut -d',' -f1);
       registry_config ${source} ${mirror};
     done)
-  ca-bundle.crt: |
-    ${CA_BUNDLE}
 EOCR
+  python ${__dir}/set_ca_bundle.py "./ca-bundle-crt" "./assisted-mirror-config"
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
