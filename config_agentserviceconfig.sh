@@ -118,8 +118,6 @@ data:
     done)
 EOCR
 
-  python ${__dir}/set_ca_bundle.py "${WORKING_DIR}/registry/certs/registry.2.crt" "./assisted-mirror-config"
-  tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
 ${__dir}/libvirt_disks.sh create
