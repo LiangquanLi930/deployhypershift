@@ -97,6 +97,7 @@ EOCR
 }
 
 function deploy_mirror_config_map() {
+  CA_BUNDLE=$(oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"')
   cat << EOCR > ./assisted-mirror-config
 apiVersion: v1
 kind: ConfigMap
@@ -116,11 +117,9 @@ data:
       mirror=$(echo ${row} | cut -d',' -f1);
       registry_config ${source} ${mirror};
     done)
+  ca-bundle.crt: |
+    ${CA_BUNDLE}
 EOCR
-
-  CA_BUNDLE=$(oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"')
-  echo "$CA_BUNDLE" > temp_ca_bundle.txt
-  yq e ".data.\"ca-bundle.crt\" = input(\"temp_ca_bundle.txt\")" ./assisted-mirror-config -i
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
