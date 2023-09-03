@@ -119,7 +119,8 @@ data:
 EOCR
 
   CA_BUNDLE=$(oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"')
-  yq e ".data.\"ca-bundle.crt\" = \"$CA_BUNDLE\"" ./assisted-mirror-config -i
+  echo "$CA_BUNDLE" > temp_ca_bundle.txt
+  yq e ".data.\"ca-bundle.crt\" = input(\"temp_ca_bundle.txt\")" ./assisted-mirror-config -i
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
