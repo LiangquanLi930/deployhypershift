@@ -118,7 +118,8 @@ data:
     done)
 EOCR
 
-#  python ${__dir}/set_ca_bundle.py "${WORKING_DIR}/registry/certs/registry.2.crt" "./assisted-mirror-config"
+  CA_BUNDLE=$(oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"')
+  sed -i '/data.ca-bundle.crt:/,/^\s*$/s/$/'"$CA_BUNDLE"'/g' ./assisted-mirror-config
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
