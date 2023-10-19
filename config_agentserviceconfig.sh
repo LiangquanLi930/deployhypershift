@@ -7,7 +7,7 @@ source ${__dir}/mirror_utils.sh
 set -x
 
 CLUSTER_VERSION=$(oc get clusterversion -o jsonpath={..desired.version} | cut -d '.' -f 1,2)
-
+OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg CLUSTER_VERSION "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
 ASSISTED_NAMESPACE="multicluster-engine"
 
 STORAGE_CLASS_NAME=$(oc get storageclass -o=jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
@@ -27,7 +27,6 @@ function registry_config() {
 }
 
 function configmap_config() {
-    OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg CLUSTER_VERSION "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
 cat <<EOF
   OS_IMAGES: '${OS_IMAGES}'
 EOF
