@@ -6,6 +6,8 @@ source ${__dir}/mirror_utils.sh
 
 set -x
 
+CLUSTER_VERSION=$(oc get clusterversion -o jsonpath={..desired.version} | cut -d '.' -f 1,2)
+
 ASSISTED_NAMESPACE="multicluster-engine"
 
 STORAGE_CLASS_NAME=$(oc get storageclass -o=jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
@@ -26,6 +28,7 @@ function registry_config() {
 
 function configmap_config() {
     if [ -n "${OS_IMAGES:-}" ]; then
+      OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg version "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
 cat <<EOF
   OS_IMAGES: '${OS_IMAGES}'
 EOF
@@ -61,8 +64,6 @@ data:
   LOG_LEVEL: "debug"
 $(configmap_config)
 EOCR
-  CLUSTER_VERSION=$(oc get clusterversion -o jsonpath={..desired.version} | cut -d '.' -f 1,2)
-
   tee << EOCR >(oc apply -f -)
 apiVersion: agent-install.openshift.io/v1beta1
 kind: AgentServiceConfig
@@ -96,8 +97,8 @@ spec:
   name: 'assisted-mirror-config'
  osImages:
  - openshiftVersion: "${CLUSTER_VERSION}"
-   version: 413.92.202307260246-0
-   url: https://mirror.openshift.com/pub/openshift-v4/x86_64/dependencies/rhcos/4.13/4.13.10/rhcos-4.13.10-x86_64-live.x86_64.iso
+   version: $(echo "$OS_IMAGES" | jq -r '.[] | select(.cpu_architecture == "x86_64").version')
+   url: $(echo "$OS_IMAGES" | jq -r '.[] | select(.cpu_architecture == "x86_64").url')
    cpuArchitecture: x86_64
 EOCR
 }
