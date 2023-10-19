@@ -27,7 +27,7 @@ function registry_config() {
 }
 
 function configmap_config() {
-    OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg version "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
+    OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg CLUSTER_VERSION "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
 cat <<EOF
   OS_IMAGES: '${OS_IMAGES}'
 EOF
