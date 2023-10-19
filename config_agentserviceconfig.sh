@@ -27,12 +27,10 @@ function registry_config() {
 }
 
 function configmap_config() {
-    if [ -n "${OS_IMAGES:-}" ]; then
-      OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg version "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
+    OS_IMAGES=$(echo "$OS_IMAGES" | jq --arg version "$CLUSTER_VERSION" '[.[] | select(.openshift_version == $CLUSTER_VERSION)]')
 cat <<EOF
   OS_IMAGES: '${OS_IMAGES}'
 EOF
-    fi
 
     if [ -n "${SERVICE_BASE_URL:-}" ]; then
 cat <<EOF
