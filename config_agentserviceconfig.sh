@@ -128,6 +128,7 @@ EOCR
 
 ${__dir}/libvirt_disks.sh create
 
+DISCONNECTED="true"
 if [ "${DISCONNECTED}" = "true" ]; then
   export MIRROR_BASE_URL="http://$(wrap_if_ipv6 ${PROVISIONING_HOST_IP})/images"
   mirror_rhcos
