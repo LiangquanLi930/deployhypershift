@@ -49,6 +49,14 @@ EOF
     fi
 
 }
+function agentserviceconfig_config() {
+  if [ -n "${DISCONNECTED:-}" ]; then
+cat <<EOF
+ unauthenticatedRegistries:
+ - registry.redhat.io
+EOF
+  fi
+}
 
 function config_agentserviceconfig() {
   tee << EOCR >(oc apply -f -)
@@ -97,6 +105,7 @@ spec:
    version: $(echo "$OS_IMAGES" | jq -r '.[] | select(.cpu_architecture == "x86_64").version')
    url: $(echo "$OS_IMAGES" | jq -r '.[] | select(.cpu_architecture == "x86_64").url')
    cpuArchitecture: x86_64
+$(agentserviceconfig_config)
 EOCR
 }
 
@@ -126,9 +135,18 @@ EOCR
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
+function mirror_rhcos() {
+    for i in $(seq 0 $(($(echo ${OS_IMAGES} | jq length) - 1))); do
+        rhcos_image=$(echo ${OS_IMAGES} | jq -r ".[$i].url")
+        mirror_rhcos_image=$(mirror_file "${rhcos_image}" "${IRONIC_IMAGES_DIR}" "${MIRROR_BASE_URL}")
+
+        OS_IMAGES=$(echo ${OS_IMAGES} |
+          jq ".[$i].url=\"${mirror_rhcos_image}\"")
+    done
+}
+
 ${__dir}/libvirt_disks.sh create
 
-DISCONNECTED="true"
 if [ "${DISCONNECTED}" = "true" ]; then
   export MIRROR_BASE_URL="http://$(wrap_if_ipv6 ${PROVISIONING_HOST_IP})/images"
   mirror_rhcos
@@ -148,13 +166,3 @@ timeout 15m oc rollout status -n openshift-machine-api deployment/metal3
 oc wait --timeout=5m pod -n openshift-machine-api -l baremetal.openshift.io/cluster-baremetal-operator=metal3-state --for=condition=Ready
 
 echo "Configuration of Assisted Installer operator passed successfully!"
-
-function mirror_rhcos() {
-    for i in $(seq 0 $(($(echo ${OS_IMAGES} | jq length) - 1))); do
-        rhcos_image=$(echo ${OS_IMAGES} | jq -r ".[$i].url")
-        mirror_rhcos_image=$(mirror_file "${rhcos_image}" "${IRONIC_IMAGES_DIR}" "${MIRROR_BASE_URL}")
-
-        OS_IMAGES=$(echo ${OS_IMAGES} |
-          jq ".[$i].url=\"${mirror_rhcos_image}\"")
-    done
-}
