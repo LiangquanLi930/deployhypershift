@@ -75,7 +75,8 @@ kind: AgentServiceConfig
 metadata:
  name: agent
  annotations:
-  unsupported.agent-install.openshift.io/assisted-service-configmap: "assisted-service-config"spec:
+  unsupported.agent-install.openshift.io/assisted-service-configmap: "assisted-service-config"
+spec:
  databaseStorage:
   storageClassName: ${STORAGE_CLASS_NAME}
   accessModes:
