@@ -50,7 +50,7 @@ EOF
 
 }
 function agentserviceconfig_config() {
-  if [ -n "${DISCONNECTED:-}" ]; then
+  if [ "${DISCONNECTED}" = "true" ]; then
 cat <<EOF
  unauthenticatedRegistries:
  - registry.redhat.io

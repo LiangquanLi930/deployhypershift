@@ -11,16 +11,13 @@ export HOSTED_CLUSTER_NS=$(oc get hostedcluster -A -ojsonpath='{.items[0].metada
 export HOSTED_CLUSTER_NAME=$(oc get hostedclusters -n "$HOSTED_CLUSTER_NS" -ojsonpath="{.items[0].metadata.name}")
 export HOSTED_CONTROL_PLANE_NAMESPACE=${HOSTED_CLUSTER_NS}"-"${HOSTED_CLUSTER_NAME}
 export ASSISTED_PULLSECRET_JSON="${ASSISTED_PULLSECRET_JSON:-${PULL_SECRET_FILE}}"
-export ASSISTED_PRIVATEKEY_NAME="${ASSISTED_PRIVATEKEY_NAME:-assisted-ssh-private-key}"
 export INFRAENV_NAME=${HOSTED_CLUSTER_NAME}
 
 echo "Running Ansible playbook to create kubernetes objects"
 ansible-playbook "${playbooks_dir}/bmh-playbook.yaml"
 
-oc get secret pull-secret -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
-    oc create secret generic pull-secret --from-file=.dockerconfigjson="${ASSISTED_PULLSECRET_JSON}" --type=kubernetes.io/dockerconfigjson -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
-oc get secret "${ASSISTED_PRIVATEKEY_NAME}" -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
-    oc create secret generic "${ASSISTED_PRIVATEKEY_NAME}" --from-file=ssh-privatekey=/root/.ssh/id_rsa --type=kubernetes.io/ssh-auth -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
+#oc get secret pull-secret -n "${HOSTED_CONTROL_PLANE_NAMESPACE}" || \
+#    oc create secret generic pull-secret --from-file=.dockerconfigjson="${ASSISTED_PULLSECRET_JSON}" --type=kubernetes.io/dockerconfigjson -n "${HOSTED_CONTROL_PLANE_NAMESPACE}"
 
 oc apply -f ${playbooks_dir}/generated/infraEnv.yaml
 oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
