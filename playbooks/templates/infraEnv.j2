@@ -3,7 +3,7 @@ kind: InfraEnv
 metadata:
   name: '{{ infraenv_name }}'
   namespace: '{{ hosted_control_plane_namespace }}'
-spec:'
+spec:
   cpuArchitecture: x86_64
   pullSecretRef:
     name: pull-secret
