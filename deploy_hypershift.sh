@@ -13,6 +13,8 @@ export HOSTED_CONTROL_PLANE_NAMESPACE=${HOSTED_CLUSTER_NS}"-"${HOSTED_CLUSTER_NA
 export ASSISTED_PULLSECRET_JSON="${ASSISTED_PULLSECRET_JSON:-${PULL_SECRET_FILE}}"
 export INFRAENV_NAME=${HOSTED_CLUSTER_NAME}
 
+playload=$(oc get clusterversion version -ojsonpath='{.status.desired.image}')
+export IRONIC_IMAGE=$(oc adm release info --image-for=ironic-agent "$playload")
 echo "Running Ansible playbook to create kubernetes objects"
 ansible-playbook "${playbooks_dir}/bmh-playbook.yaml"
 

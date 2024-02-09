@@ -8,6 +8,7 @@
     - baremetalhosts: "{{ lookup('file', lookup('env', 'EXTRA_BAREMETALHOSTS_FILE')) | from_json }}"
     - infraenv_name: "{{ lookup('env', 'INFRAENV_NAME') }}"
     - ssh_public_key: "{{ lookup('env', 'SSH_PUB_KEY') }}"
+    - ironic_image: "{{ lookup('env', 'IRONIC_IMAGE') }}"
 
   tasks:
   - name: create directory for generated resources
