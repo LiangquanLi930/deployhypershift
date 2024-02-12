@@ -26,6 +26,27 @@ function registry_config() {
   ' ${src_image} ${mirrored_image}
 }
 
+function configmap_config() {
+cat <<EOF
+  OS_IMAGES: '${OS_IMAGES}'
+EOF
+    if [ -n "${SERVICE_BASE_URL:-}" ]; then
+cat <<EOF
+  SERVICE_BASE_URL: '${SERVICE_BASE_URL}'
+EOF
+    fi
+    if [ -n "${PUBLIC_CONTAINER_REGISTRIES:-}" ]; then
+cat <<EOF
+  PUBLIC_CONTAINER_REGISTRIES: 'quay.io,${PUBLIC_CONTAINER_REGISTRIES}'
+EOF
+    fi
+    if [ -n "${ALLOW_CONVERGED_FLOW:-}" ]; then
+cat <<EOF
+  ALLOW_CONVERGED_FLOW: '${ALLOW_CONVERGED_FLOW}'
+EOF
+    fi
+}
+
 function agentserviceconfig_config() {
   if [ "${DISCONNECTED}" = "true" ]; then
 cat <<EOF
@@ -37,10 +58,22 @@ EOF
 
 function config_agentserviceconfig() {
   oc apply -f - <<END
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assisted-service-config
+  namespace: ${ASSISTED_NAMESPACE}
+data:
+  LOG_LEVEL: "debug"
+$(configmap_config)
+END
+  oc apply -f - <<END
 apiVersion: agent-install.openshift.io/v1beta1
 kind: AgentServiceConfig
 metadata:
  name: agent
+ annotations:
+  unsupported.agent-install.openshift.io/assisted-service-configmap: "assisted-service-config"
 spec:
  databaseStorage:
   storageClassName: ${STORAGE_CLASS_NAME}
