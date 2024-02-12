@@ -110,7 +110,6 @@ EOCR
 }
 
 function deploy_mirror_config_map() {
-  oc get configmap -n openshift-config user-ca-bundle -o json | jq -r '.data."ca-bundle.crt"' > ca-bundle-crt
   cat << EOCR > ./assisted-mirror-config
 apiVersion: v1
 kind: ConfigMap
@@ -131,7 +130,7 @@ data:
       registry_config ${source} ${mirror};
     done)
 EOCR
-  python ${__dir}/set_ca_bundle.py "./ca-bundle-crt" "./assisted-mirror-config"
+  python ${__dir}/set_ca_bundle.py "${WORKING_DIR}/registry/certs/registry.2.crt" "./assisted-mirror-config"
   tee < ./assisted-mirror-config >(oc apply -f -)
 }
 
