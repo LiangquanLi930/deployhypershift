@@ -110,7 +110,8 @@ EOCR
 }
 
 function deploy_mirror_config_map() {
-  cat << EOCR > ./assisted-mirror-config
+  oc debug node/"$(oc get node -lnode-role.kubernetes.io/worker="" -o jsonpath='{.items[0].metadata.name}')" -- chroot /host/ bash -c 'cat /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem' | awk '{ print "  " $0 }' > ca-bundle-crt
+  cat <<END | oc apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -119,6 +120,8 @@ metadata:
   labels:
     app: assisted-service
 data:
+  ca-bundle.crt: >
+$(cat ./ca-bundle-crt)
   registries.conf: |
     unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
 
@@ -129,9 +132,7 @@ data:
       mirror=$(echo ${row} | cut -d',' -f1);
       registry_config ${source} ${mirror};
     done)
-EOCR
-  python ${__dir}/set_ca_bundle.py "${WORKING_DIR}/registry/certs/registry.2.crt" "./assisted-mirror-config"
-  tee < ./assisted-mirror-config >(oc apply -f -)
+END
 }
 
 function mirror_rhcos() {
