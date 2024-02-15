@@ -118,9 +118,9 @@ fi
 deploy_mirror_config_map
 config_agentserviceconfig
 
-wait_for_condition "agentserviceconfigs/agent" "ReconcileCompleted" "5m"
-wait_for_deployment "assisted-service" "${ASSISTED_NAMESPACE}" "5m"
-wait_for_pod "assisted-image-service" "${ASSISTED_NAMESPACE}" "app=assisted-image-service"
+oc wait --timeout=5m --for=condition=ReconcileCompleted AgentServiceConfig agent
+oc wait --timeout=5m --for=condition=Available deployment assisted-service -n "${ASSISTED_NAMESPACE}"
+oc wait --timeout=15m --for=condition=Ready pod -l app=assisted-image-service -n "${ASSISTED_NAMESPACE}"
 
 echo "Enabling configuration of BMH resources outside of openshift-machine-api namespace"
 oc patch provisioning provisioning-configuration --type merge -p '{"spec":{"watchAllNamespaces": true}}'
