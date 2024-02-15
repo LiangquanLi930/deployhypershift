@@ -26,29 +26,6 @@ function registry_config() {
   ' ${src_image} ${mirrored_image}
 }
 
-function configmap_config() {
-cat <<EOF
-  OS_IMAGES: '${OS_IMAGES}'
-EOF
-
-    if [ -n "${SERVICE_BASE_URL:-}" ]; then
-cat <<EOF
-  SERVICE_BASE_URL: '${SERVICE_BASE_URL}'
-EOF
-    fi
-
-    if [ -n "${PUBLIC_CONTAINER_REGISTRIES:-}" ]; then
-cat <<EOF
-  PUBLIC_CONTAINER_REGISTRIES: 'quay.io,${PUBLIC_CONTAINER_REGISTRIES}'
-EOF
-    fi
-    if [ -n "${ALLOW_CONVERGED_FLOW:-}" ]; then
-cat <<EOF
-  ALLOW_CONVERGED_FLOW: '${ALLOW_CONVERGED_FLOW}'
-EOF
-    fi
-
-}
 function agentserviceconfig_config() {
   if [ "${DISCONNECTED}" = "true" ]; then
 cat <<EOF
@@ -60,22 +37,10 @@ EOF
 
 function config_agentserviceconfig() {
   tee << EOCR >(oc apply -f -)
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: assisted-service-config
-  namespace: ${ASSISTED_NAMESPACE}
-data:
-  LOG_LEVEL: "debug"
-$(configmap_config)
-EOCR
-  tee << EOCR >(oc apply -f -)
 apiVersion: agent-install.openshift.io/v1beta1
 kind: AgentServiceConfig
 metadata:
  name: agent
- annotations:
-  unsupported.agent-install.openshift.io/assisted-service-configmap: "assisted-service-config"
 spec:
  databaseStorage:
   storageClassName: ${STORAGE_CLASS_NAME}
@@ -120,7 +85,7 @@ metadata:
   labels:
     app: assisted-service
 data:
-  ca-bundle.crt: >
+  ca-bundle.crt: |
 $(cat ./ca-bundle-crt)
   registries.conf: |
     unqualified-search-registries = ["registry.access.redhat.com", "docker.io"]
