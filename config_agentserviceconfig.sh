@@ -36,7 +36,7 @@ EOF
 }
 
 function config_agentserviceconfig() {
-  tee << EOCR >(oc apply -f -)
+  oc apply -f - <<END
 apiVersion: agent-install.openshift.io/v1beta1
 kind: AgentServiceConfig
 metadata:
@@ -71,7 +71,7 @@ spec:
    url: $(echo "$OS_IMAGES" | jq -r '.[] | select(.cpu_architecture == "x86_64").url')
    cpuArchitecture: x86_64
 $(agentserviceconfig_config)
-EOCR
+END
 }
 
 function deploy_mirror_config_map() {
