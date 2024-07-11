@@ -9,10 +9,11 @@ playbooks_dir=${__dir}/playbooks
 export SSH_PUB_KEY=$(cat /root/.ssh/id_rsa.pub)
 export HOSTED_CLUSTER_NS=$(oc get hostedcluster -A -ojsonpath='{.items[0].metadata.namespace}')
 export HOSTED_CLUSTER_NAME=$(oc get hostedclusters -n "$HOSTED_CLUSTER_NS" -ojsonpath="{.items[0].metadata.name}")
-export HOSTED_CONTROL_PLANE_NAMESPACE=${HOSTED_CLUSTER_NS}"-"${HOSTED_CLUSTER_NAME}
+export HOSTED_CONTROL_PLANE_NAMESPACE=${HOSTED_CLUSTER_NS}"-2"${HOSTED_CLUSTER_NAME}
 export ASSISTED_PULLSECRET_JSON="${ASSISTED_PULLSECRET_JSON:-${PULL_SECRET_FILE}}"
 export INFRAENV_NAME=${HOSTED_CLUSTER_NAME}
 
+oc create ns HOSTED_CONTROL_PLANE_NAMESPACE
 playload=$(oc get clusterversion version -ojsonpath='{.status.desired.image}')
 export IRONIC_IMAGE=$(oc adm release info --image-for=ironic-agent "$playload")
 echo "Running Ansible playbook to create kubernetes objects"
@@ -23,9 +24,6 @@ ansible-playbook "${playbooks_dir}/bmh-playbook.yaml"
 
 oc apply -f ${playbooks_dir}/generated/infraEnv.yaml
 oc apply -f ${playbooks_dir}/generated/baremetalHost.yaml
-
-echo "wait BareMetalHost ready"
-oc wait --all=true BareMetalHost -n ${HOSTED_CONTROL_PLANE_NAMESPACE} --for=jsonpath='{.status.provisioning.state}'=provisioned --timeout=10m
 
 _agentExist=0
 set +e
@@ -45,6 +43,7 @@ if [ $_agentExist -eq 0 ]; then
   exit 1
 fi
 
+oc wait --all=true agent -n ${HOSTED_CONTROL_PLANE_NAMESPACE}  --for=condition=RequirementsMet
 echo "scale nodepool replicas => $NUM_EXTRA_WORKERS"
 oc scale nodepool ${HOSTED_CLUSTER_NAME} -n "$HOSTED_CLUSTER_NS" --replicas ${NUM_EXTRA_WORKERS}
 echo "wait agent ready"
